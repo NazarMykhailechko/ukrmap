@@ -8,40 +8,41 @@
 #
 
 library(shiny)
+library(ggplot2)
+library(sf)
+library(geodata)
+library(plotly)
+
+ukr <- gadm(country="UKR", level=1, path=getwd())
+ukrplaces <- osm(country="UKR", "places", path=getwd())
+
+ukr_sf <- st_as_sf(ukr)
+ukrplaces_sf <- st_as_sf(ukrplaces)
+
+dk_map <- st_cast(ukr_sf, "MULTIPOLYGON")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
+    titlePanel("Ukraine places"),
 
     # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
+    
+    selectInput(inputId = 'typeofplace',label = 'select type of place',
+                choices = list('city','town','village','hamlet'),selected = 'city'),
 
-        # Show a plot of the generated distribution
         mainPanel(
-           plotOutput("distPlot")
+           plotlyOutput("distPlot")
         )
     )
-)
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
 
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'red', border = 'white')
+    output$distPlot <- renderPlotly({
+      ggplotly(ggplot(data = dk_map) + geom_sf() + 
+                 geom_sf(data = ukrplaces_sf[ukrplaces_sf$place == input$typeofplace,]),width = 800,height = 600)
     })
 }
 
