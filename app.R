@@ -42,7 +42,7 @@ server <- function(input, output) {
 
     output$distPlot <- renderPlotly({
       ggplotly(ggplot(data = dk_map) + geom_sf() + 
-                 geom_sf(data = ukrplaces_sf[ukrplaces_sf$place == input$typeofplace,]),width = 800,height = 600)
+                 geom_sf(data = ukrplaces_sf[ukrplaces_sf$place == input$typeofplace,], color = 'red'),width = 800,height = 600)
     })
 }
 
