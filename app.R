@@ -1,76 +1,60 @@
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+
 library(shiny)
-library(dplyr)
-library(leaflet)
-library(DT)
+library(ggplot2)
+library(sf)
+library(geodata)
+library(plotly)
 
 
+#ukr <- gadm(country="UKR", level=1, path=getwd())
+#ukrplaces <- osm(country="UKR", "places", path=tempdir())
+
+ukr <- readRDS("gadm41_UKR_1_pk.rds")
+ukrplaces <- st_read("UKR_places.gpkg")
+ukrfood <- read.csv('wfp_food_prices_ukr.csv',sep =',',header = T,encoding = 'UTF-8')
+
+vegfr <- ukrfood[ukrfood$date == '2022-08-15' & ukrfood$category == 'vegetables and fruits',]
+
+ukr_sf <- st_as_sf(ukr)
+ukrplaces_sf <- st_as_sf(ukrplaces)
+
+dk_map <- st_cast(ukr_sf, "MULTIPOLYGON")
+
+# Define UI for application that draws a histogram
 ui <- fluidPage(
-  
-  # Application title
-  titlePanel("world places"),
-  
-  navbarPage("Location of Blood Banks", id="main",
-             tabPanel("Map", leafletOutput("bbmap", height=1000)),
-             tabPanel("Data", DT::dataTableOutput("data")),
-             tabPanel("Read Me",includeMarkdown("readme.md")))
-)
 
+    # Application title
+    titlePanel("Ukraine places"),
+
+    sidebarLayout(
+    # Sidebar with a slider input for number of bins 
+    sidebarPanel(h3("Карта України"),
+    selectInput(inputId = 'typeofplace',label = 'select type of place',
+                choices = list("обласний центр"='city',"місто"='town',"село"='village',"хутір"='hamlet'),selected = 'city')),
+
+        mainPanel('Карта України',
+           plotlyOutput("distPlot")
+        )
+    )
+    )
+
+# Define server logic required to draw a histogram
 server <- function(input, output) {
-  # Import Data and clean it
-  
-  bb_data <- read.csv("blood-banks.csv", stringsAsFactors = FALSE, sep = ',')
-  bb_data <- data.frame(bb_data)
-  bb_data$Latitude <-  as.numeric(bb_data$Latitude)
-  bb_data$Longitude <-  as.numeric(bb_data$Longitude)
-  bb_data=filter(bb_data, Latitude != "NA") # removing NA values
-  
-  # new column for the popup label
-  
-  bb_data <- mutate(bb_data, cntnt=paste0('<strong>Name: </strong>',Blood.Bank.Name,
-                                          '<br><strong>State:</strong> ', State,
-                                          '<br><strong>Time:</strong> ', Service.Time,
-                                          '<br><strong>Mobile:</strong> ',Mobile,
-                                          '<br><strong>HelpLine:</strong> ',Helpline,
-                                          '<br><strong>Contact1:</strong> ',Contact.No.1,
-                                          '<br><strong>Contact2:</strong> ',Contact.No.2,
-                                          '<br><strong>Contact3:</strong> ',Contact.No.3,
-                                          '<br><strong>Contact4:</strong> ',Contact.No.4,
-                                          '<br><strong>Contact5:</strong> ',Contact.No.5,
-                                          '<br><strong>Contact6:</strong> ',Contact.No.6,
-                                          '<br><strong>Contact7:</strong> ',Contact.No.7,
-                                          '<br><strong>Email:</strong> ',Email,
-                                          '<br><strong>Website:</strong> ',Website)) 
-  
-  # create a color paletter for category type in the data file
-  
-  pal <- colorFactor(pal = c("#1b9e77", "#d95f02", "#7570b3"), domain = c("Charity", "Government", "Private"))
-  
-  # create the leaflet map  
-  output$bbmap <- renderLeaflet({
-    leaflet(bb_data) %>% 
-      addCircles(lng = ~Longitude, lat = ~Latitude) %>% 
-      addTiles() %>%
-      addCircleMarkers(data = bb_data, lat =  ~Latitude, lng =~Longitude, 
-                       radius = 3, popup = ~as.character(cntnt), 
-                       color = ~pal(Category),
-                       stroke = FALSE, fillOpacity = 0.8)%>%
-      addLegend(pal=pal, values=bb_data$Category,opacity=1, na.label = "Not Available")%>%
-      addEasyButton(easyButton(
-        icon="fa-crosshairs", title="ME",
-        onClick=JS("function(btn, map){ map.locate({setView: true}); }")))
-  })
-  
-  #create a data object to display data
-  
-  output$data <-DT::renderDataTable(datatable(
-    bb_data[,c(-1,-23,-24,-25,-28:-35)],filter = 'top',
-    colnames = c("Blood Bank Name", "State", "District", "City", "Address", "Pincode","Contact No.",
-                 "Mobile","HelpLine","Fax","Email", "Website","Nodal Officer", "Contact of Nodal Officer",
-                 "Mobile of Nodal Officer", "Email of Nodal Officer","Qualification", "Category", "Blood Component Available",
-                 "Apheresis", "Service Time", "Lat", "Long.")
-  ))
-  
-  
+
+    output$distPlot <- renderPlotly({
+      ggplotly(ggplot(data = dk_map) + geom_sf() + 
+        geom_point(data = vegfr, aes(x = longitude, y = latitude, fill = market), size = 3, 
+                     shape = 16, color ='blue') +
+            geom_sf(data = ukrplaces_sf[ukrplaces_sf$place == input$typeofplace,], color = 'red'),width = 800,height = 600)
+    })
 }
 
 # Run the application 
