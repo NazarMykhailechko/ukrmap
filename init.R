@@ -3,7 +3,7 @@
 # Example R code to install packages if not already installed
 #
 
-options(encoding = "UTF-8")
+#options(encoding = "UTF-8")
 
 my_packages = c("shiny","dplyr","leaflet","DT")
 
