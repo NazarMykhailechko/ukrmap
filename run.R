@@ -1,10 +1,5 @@
 # run.R
 
-library(shiny)
-library(dplyr)
-library(leaflet)
-library(DT)
-
 port <- Sys.getenv('PORT')
 shiny::runApp(
   appDir = getwd(),
