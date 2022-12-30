@@ -5,7 +5,7 @@
 
 options(encoding = "UTF-8")
 
-my_packages = c("shiny","dplyr","leaflet","DT", "terra", "raster", "rgdal")
+my_packages = c("shiny","dplyr","leaflet","DT")
 
 install_if_missing = function(p) {
   if (p %in% rownames(installed.packages()) == FALSE) {
