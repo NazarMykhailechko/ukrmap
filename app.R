@@ -4,6 +4,7 @@ library(leaflet)
 library(DT)
 library(terra)
 library(raster)
+library(rgdal)
 
 ui <- fluidPage(
   
