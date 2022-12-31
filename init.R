@@ -3,7 +3,7 @@
 # Example R code to install packages if not already installed
 #
 #my_packages = c("shiny","ggplot2","sf","geodata","plotly")
-my_packages = c("shiny")
+my_packages = c("shiny","terra")
 
 install_if_missing = function(p) {
   if (p %in% rownames(installed.packages()) == FALSE) {

@@ -1,6 +1,7 @@
 # run.R
 
 library(shiny)
+library(terra)
 
 port <- Sys.getenv('PORT')
 shiny::runApp(
