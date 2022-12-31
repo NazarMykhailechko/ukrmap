@@ -8,7 +8,7 @@
 #
 
 library(shiny)
-library(ggplot2)
+#library(ggplot2)
 #library(sf)
 #library(geodata)
 #library(plotly)
