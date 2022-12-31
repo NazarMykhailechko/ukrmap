@@ -8,7 +8,7 @@
 #
 
 library(shiny)
-library(terra)
+
 #library(ggplot2)
 #library(sf)
 #library(geodata)
